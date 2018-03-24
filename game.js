@@ -62,13 +62,14 @@ var gPlayer = {
     // Parse direction
     let dl  = this.desiredLane;
     if(dir === "up") {
-      dl += 1;
-    } else if (dir === "down" ) {
       dl -= 1;
+    } else if (dir === "down" ) {
+      dl += 1;
     }
 
     // Update
-    this.desiredLane = clamp(dl, 0, this.maxLanes);
+    let max = this.maxLanes - 1;
+    this.desiredLane = clamp(dl, 0, max);
   },
 
   laneToPosition : function() {

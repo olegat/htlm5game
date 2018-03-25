@@ -53,7 +53,7 @@ var gGameArea = {
 var gPlayer = {
   desiredLane : 1, // 0 is the top lane, maxLanes-1 is the bottom lane
   maxLanes    : 3,
-  ySpeed      : 0.3, // pixels-per-milliseconds. must be positive.
+  speed       : {x:0, y:0.3}, // pixels-per-milliseconds. must be positive.
   position    : {x:0, y:0},
 
   readInput : function() {
@@ -88,21 +88,35 @@ var gPlayer = {
     this.desiredLane = clamp(dl, 0, max);
   },
 
-  updatePosition : function() {
-    let desiredY = this.laneToPosition().y;
-    let yDiff    = (this.ySpeed * gGameArea.dt);
+  getVelocity : function(start, destination, speed) {
+    var velocity = { x:0, y:0 };
 
-    if (desiredY > this.position.y) {
-      // Move downwards
-      let newY  = this.position.y + yDiff;
-      // Don't move down further than desired-pos.
-      this.position.y = Math.min(desiredY, newY);
+    if( destination.y < start.y ) {
+      // Moving upwards
+      velocity.y = -speed.y;
     }
-    else if (desiredY < this.position.y) {
-      // Move upwards
-      let newY  = this.position.y - yDiff;
+    else if( destination.y > start.y ) {
+      // Moving downwards
+      velocity.y = speed.y;
+    }
+
+    return velocity;
+  },
+
+  updatePosition : function() {
+    let dest = this.laneToPosition();
+    let velo = this.getVelocity(this.position, dest, this.speed);
+    let dy   = (velo.y * gGameArea.dt);
+    let newY = (this.position.y + dy);
+
+    // Update position.
+    if (dy > 0) { // Moving downwards
+      // Don't move down further than desired-pos.
+      this.position.y = Math.min(dest.y, newY);
+    }
+    else if (dy < 0) { // Moving upwards
       // Don't move up further than desired-pos.
-      this.position.y = Math.max(desiredY, newY);
+      this.position.y = Math.max(dest.y, newY);
     }
   },
 

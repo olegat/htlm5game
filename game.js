@@ -15,17 +15,34 @@ function clamp(num, min, max) {
 var gGameArea = {
   canvas : document.createElement("canvas"),
   start  : function() {
+    // Init canvas
     this.canvas.width  = 480;
     this.canvas.height = 270;
     this.context  = this.canvas.getContext("2d");
-    this.interval = setInterval(gameLoop, 20);
     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
 
+    // Init time
+    this.lastFrame = (new Date()).getMilliseconds();
+    this.dt        = 0; // milliseconds.
+    this.interval  = setInterval(gameLoop, 20);
+
+    // Init input
     window.addEventListener('keyup', function (e) {
       console.log("key received");
       gGameArea.key = e.key;
     });
   },
+
+  update : function() {
+    // Update time
+    let ms = (new Date()).getMilliseconds();
+    this.dt        = ms - this.lastFrame;
+    this.lastFrame = ms;
+  },
+
+  draw : function() {
+  },
+
   clear  : function() {
     let w = this.canvas.width;
     let h = this.canvas.height;
@@ -34,11 +51,10 @@ var gGameArea = {
 };
 
 var gPlayer = {
-  desiredLane : 1, // 0 is the bottom lane, maxLanes-1 is the top lane
+  desiredLane : 1, // 0 is the top lane, maxLanes-1 is the bottom lane
   maxLanes    : 3,
-  ySpeed      : 30, // pixels per second. must be positive.
-  velocity    : {x: 0, y: 0},
-  position    : {x: 0, y: 0},
+  ySpeed      : 0.3, // pixels-per-milliseconds. must be positive.
+  position    : {x:0, y:0},
 
   readInput : function() {
     // Read and reset key.
@@ -72,6 +88,24 @@ var gPlayer = {
     this.desiredLane = clamp(dl, 0, max);
   },
 
+  updatePosition : function() {
+    let desiredY = this.laneToPosition().y;
+    let yDiff    = (this.ySpeed * gGameArea.dt);
+
+    if (desiredY > this.position.y) {
+      // Move downwards
+      let newY  = this.position.y + yDiff;
+      // Don't move down further than desired-pos.
+      this.position.y = Math.min(desiredY, newY);
+    }
+    else if (desiredY < this.position.y) {
+      // Move upwards
+      let newY  = this.position.y - yDiff;
+      // Don't move up further than desired-pos.
+      this.position.y = Math.max(desiredY, newY);
+    }
+  },
+
   laneToPosition : function() {
     let w = gGameArea.canvas.width;
     let h = gGameArea.canvas.height;
@@ -83,9 +117,13 @@ var gPlayer = {
 	   };
   },
 
+  start : function() {
+    this.position = this.laneToPosition(this.desiredLane);
+  },
+
   update : function() {
     this.updateDesiredLane();
-    this.position = this.laneToPosition();
+    this.updatePosition();
   },
 
   draw : function() {
@@ -104,13 +142,16 @@ var gPlayer = {
 //----------------------------------------------------------------------------
 function startGame() {
   gGameArea.start();
+  gPlayer.start();
 };
 
 function updateGame() {
+  gGameArea.update();
   gPlayer.update();
 };
 
 function drawGame() {
+  gGameArea.draw();
   gPlayer.draw();
 };
 

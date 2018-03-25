@@ -54,7 +54,6 @@ var gLanes = {
   maxLanes : 3, // 0 is the top lane, maxLanes-1 is the bottom lane
 
   laneToPosition : function(lane) {
-    let w = gGameArea.canvas.width;
     let h = gGameArea.canvas.height;
     let step = h / 6;
     let yoff = 40;
@@ -75,6 +74,45 @@ var gLanes = {
   clear : function() {
   }
 };
+
+function Enemy(lane) {
+  this.size       = {x:30, y:30};
+  this.position   = gLanes.laneToPosition(lane);
+  this.position.x = gGameArea.canvas.width;
+  this.velocity   = {x:-0.1, y: 0};
+
+  this.shouldBeRemoved = function() {
+    // Compute the right border of the enemy's bounding box.
+    let rightBorder = this.position.x + this.size.x;
+
+    // Has the enemy run off to the left side of the canvas?
+    if(rightBorder < 0) {
+      return true;
+    }
+
+    return false;
+  };
+
+  this.update = function() {
+    this.shouldBeRemoved();
+    let p  = this.position;
+    let v  = this.velocity;
+    let dt = gGameArea.dt;
+    // Update position.
+    this.position = { x: p.x + (v.x * dt) ,
+		      y: p.y + (v.y * dt) };
+  };
+
+  this.draw = function() {
+    let ctx = gGameArea.context;
+    ctx.fillStyle = "green";
+    ctx.fillRect( this.position.x,
+		  this.position.y,
+		  this.size.x,
+		  this.size.y );
+  };
+}
+var gTestEnemy = null; // TODO: remove me.
 
 var gPlayer = {
   desiredLane : 1,
@@ -184,6 +222,11 @@ function updateGame() {
   gGameArea.update();
   gLanes.update();
   gPlayer.update();
+
+  if (gTestEnemy == null) {
+    gTestEnemy = new Enemy(0);
+  }
+  gTestEnemy.update();
 };
 
 function drawGame() {
@@ -191,6 +234,7 @@ function drawGame() {
   gGameArea.draw();
   gLanes.draw();
   gPlayer.draw();
+  gTestEnemy.draw();
 };
 
 function gameLoop() {

@@ -50,11 +50,37 @@ var gGameArea = {
   }
 };
 
+var gLanes = {
+  maxLanes : 3, // 0 is the top lane, maxLanes-1 is the bottom lane
+
+  laneToPosition : function(lane) {
+    let w = gGameArea.canvas.width;
+    let h = gGameArea.canvas.height;
+    let step = h / 6;
+    let yoff = 40;
+    return { x: 20,
+	     y: yoff + (step * lane)
+	   };
+  },
+
+  start : function() {
+  },
+
+  update : function() {
+  },
+
+  draw : function() {
+  },
+
+  clear : function() {
+  }
+};
+
 var gPlayer = {
-  desiredLane : 1, // 0 is the top lane, maxLanes-1 is the bottom lane
-  maxLanes    : 3,
-  speed       : {x:0, y:0.3}, // pixels-per-milliseconds. must be positive.
-  position    : {x:0, y:0},
+  desiredLane : 1,
+  speed       : {x:0,  y:0.3}, // pixels-per-milliseconds. must be positive.
+  position    : {x:0,  y:0},
+  size        : {x:30, y:30},
 
   readInput : function() {
     // Read and reset key.
@@ -84,7 +110,7 @@ var gPlayer = {
     }
 
     // Update
-    let max = this.maxLanes - 1;
+    let max = gLanes.maxLanes - 1;
     this.desiredLane = clamp(dl, 0, max);
   },
 
@@ -103,8 +129,12 @@ var gPlayer = {
     return velocity;
   },
 
+  getDestination : function() {
+    return gLanes.laneToPosition(this.desiredLane);
+  },
+
   updatePosition : function() {
-    let dest = this.laneToPosition();
+    let dest = this.getDestination();
     let velo = this.getVelocity(this.position, dest, this.speed);
     let dy   = (velo.y * gGameArea.dt);
     let newY = (this.position.y + dy);
@@ -120,19 +150,8 @@ var gPlayer = {
     }
   },
 
-  laneToPosition : function() {
-    let w = gGameArea.canvas.width;
-    let h = gGameArea.canvas.height;
-    let step = h / 6;
-    let yoff = 40;
-    let lane = this.desiredLane;
-    return { x: 20,
-	     y: yoff + (step * lane)
-	   };
-  },
-
   start : function() {
-    this.position = this.laneToPosition(this.desiredLane);
+    this.position = this.getDestination();
   },
 
   update : function() {
@@ -145,7 +164,8 @@ var gPlayer = {
     ctx.fillStyle = "red";
     ctx.fillRect( this.position.x,
 		  this.position.y,
-		  30, 30);
+		  this.size.x,
+		  this.size.y );
   }
 };
 
@@ -156,21 +176,24 @@ var gPlayer = {
 //----------------------------------------------------------------------------
 function startGame() {
   gGameArea.start();
+  gLanes.start();
   gPlayer.start();
 };
 
 function updateGame() {
   gGameArea.update();
+  gLanes.update();
   gPlayer.update();
 };
 
 function drawGame() {
+  gGameArea.clear();
   gGameArea.draw();
+  gLanes.draw();
   gPlayer.draw();
 };
 
 function gameLoop() {
-  gGameArea.clear();
   updateGame();
   drawGame();
 }

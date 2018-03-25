@@ -22,7 +22,7 @@ var gGameArea = {
     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
 
     // Init time
-    this.lastFrame = (new Date()).getMilliseconds();
+    this.lastFrame = (new Date()).getTime();
     this.dt        = 0; // milliseconds.
     this.interval  = setInterval(gameLoop, 20);
 

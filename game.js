@@ -35,7 +35,7 @@ var gGameArea = {
 
   update : function() {
     // Update time
-    let ms = (new Date()).getMilliseconds();
+    let ms = (new Date()).getTime();
     this.dt        = ms - this.lastFrame;
     this.lastFrame = ms;
   },

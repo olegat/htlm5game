@@ -50,11 +50,11 @@ let data =
   enemy: {
     color:          "green",
     size:           { x:30, y:30 },
-    movementSpeed:  0.1
+    movementSpeed:  0.3
   },
 
   enemySpawner: {
-    millisBetweenSpawn:  { min: 1000, max: 2000 }
+    millisBetweenSpawn:  { min: 300, max: 800 }
   },
 
   input: {

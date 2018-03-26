@@ -43,13 +43,13 @@ let data =
 {
   player: {
     color:          "red",
-    size:           { x:30, y:30 },
+    size:           { x:30, y:30 }, // TODO: refactor width/height.
     movementSpeed:  0.3
   },
 
   enemy: {
     color:          "green",
-    size:           { x:30, y:30 },
+    size:           { x:30, y:30 }, // TODO: refactor width/height.
     movementSpeed:  0.3
   },
 

@@ -8,6 +8,35 @@ function clamp(num, min, max) {
 };
 
 
+let data =
+// TODO this could be read from JSON file?
+{
+  player: {
+    color:          "red",
+    size:           { x:30, y:30 },
+    movementSpeed:  0.3
+  },
+
+  enemy: {
+    color:          "green",
+    size:           { x:30, y:30 },
+    movementSpeed:  0.1
+  },
+
+  input: {
+    moveDown: {
+      name:        "moveDown",
+      keyboard:    [ "ArrowDown" ]
+    },
+    moveUp: {
+      name:        "moveUp",
+      keyboard:    [ "ArrowUp" ]
+    }
+  }
+}
+;
+
+
 
 //----------------------------------------------------------------------------
 // Game Components
@@ -38,10 +67,10 @@ var gLanes = {
 };
 
 function Enemy(lane) {
-  this.size       = {x:30, y:30};
+  this.size       = data.enemy.size;
   this.position   = gLanes.laneToPosition(lane);
   this.position.x = gGameArea.canvas.width;
-  this.velocity   = {x:-0.1, y: 0};
+  this.velocity   = {x: -data.enemy.movementSpeed, y: 0};
 
   this.shouldBeRemoved = function() {
     // Compute the right border of the enemy's bounding box.
@@ -67,7 +96,7 @@ function Enemy(lane) {
 
   this.draw = function() {
     let ctx = gGameArea.context;
-    ctx.fillStyle = "green";
+    ctx.fillStyle = data.enemy.color;
     ctx.fillRect( this.position.x,
 		  this.position.y,
 		  this.size.x,
@@ -84,11 +113,17 @@ var gPlayer = {
     let k = gGameArea.key;
     gGameArea.key = false;
 
+    let up   = data.input.moveUp;
+    let down = data.input.moveDown;
+    if(k) {
+      while(false);
+    }
+
     // Convert to player direction.
-    if (k === "ArrowDown") {
-      v = "down";
-    } else if (k === "ArrowUp") {
-      v = "up";
+    if (k === down.keyboard[0] ) {
+      v = down.name;
+    } else if (k === up.keyboard[0] ) {
+      v = up.name;
     }
 
     return v;
@@ -99,9 +134,10 @@ var gPlayer = {
 
     // Parse direction
     let dl  = this.desiredLane;
-    if(dir === "up") {
+    let input = data.input;
+    if(dir === input.moveUp.name) {
       dl -= 1;
-    } else if (dir === "down" ) {
+    } else if (dir === input.moveDown.name ) {
       dl += 1;
     }
 
@@ -115,11 +151,11 @@ var gPlayer = {
 
     if( destination.y < start.y ) {
       // Moving upwards
-      velocity.y = -speed.y;
+      velocity.y = -speed;
     }
     else if( destination.y > start.y ) {
       // Moving downwards
-      velocity.y = speed.y;
+      velocity.y = speed;
     }
 
     return velocity;
@@ -131,7 +167,7 @@ var gPlayer = {
 
   updatePosition : function() {
     let dest = this.getDestination();
-    let velo = this.getVelocity(this.position, dest, this.speed);
+    let velo = this.getVelocity(this.position, dest, data.player.movementSpeed);
     let dy   = (velo.y * gGameArea.dt);
     let newY = (this.position.y + dy);
 
@@ -148,8 +184,7 @@ var gPlayer = {
 
   start : function() {
     this.desiredLane = 1;
-    this.speed       = {x:0,  y:0.3}; // pixels-per-milliseconds. must be positive.
-    this.size        = {x:30, y:30};
+    this.size        = data.player.size;
     this.position    = this.getDestination();
   },
 
@@ -160,7 +195,7 @@ var gPlayer = {
 
   draw : function() {
     let ctx = gGameArea.context;
-    ctx.fillStyle = "red";
+    ctx.fillStyle = data.player.color;
     ctx.fillRect( this.position.x,
 		  this.position.y,
 		  this.size.x,

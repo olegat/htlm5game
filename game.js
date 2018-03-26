@@ -12,44 +12,6 @@ function clamp(num, min, max) {
 //----------------------------------------------------------------------------
 // Game Components
 //----------------------------------------------------------------------------
-var gGameArea = {
-  canvas : document.createElement("canvas"),
-  start  : function() {
-    // Init canvas
-    this.canvas.width  = 480;
-    this.canvas.height = 270;
-    this.context  = this.canvas.getContext("2d");
-    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-
-    // Init time
-    this.lastFrame = (new Date()).getTime();
-    this.dt        = 0; // milliseconds.
-    this.interval  = setInterval(gameLoop, 20);
-
-    // Init input
-    window.addEventListener('keyup', function (e) {
-      console.log("key received");
-      gGameArea.key = e.key;
-    });
-  },
-
-  update : function() {
-    // Update time
-    let ms = (new Date()).getTime();
-    this.dt        = ms - this.lastFrame;
-    this.lastFrame = ms;
-  },
-
-  draw : function() {
-  },
-
-  clear  : function() {
-    let w = this.canvas.width;
-    let h = this.canvas.height;
-    this.context.clearRect(0, 0, w, h);
-  }
-};
-
 var gLanes = {
   maxLanes : 3, // 0 is the top lane, maxLanes-1 is the bottom lane
 
@@ -115,10 +77,6 @@ function Enemy(lane) {
 var gTestEnemy = null; // TODO: remove me.
 
 var gPlayer = {
-  desiredLane : 1,
-  speed       : {x:0,  y:0.3}, // pixels-per-milliseconds. must be positive.
-  position    : {x:0,  y:0},
-  size        : {x:30, y:30},
 
   readInput : function() {
     // Read and reset key.
@@ -189,7 +147,10 @@ var gPlayer = {
   },
 
   start : function() {
-    this.position = this.getDestination();
+    this.desiredLane = 1;
+    this.speed       = {x:0,  y:0.3}; // pixels-per-milliseconds. must be positive.
+    this.size        = {x:30, y:30};
+    this.position    = this.getDestination();
   },
 
   update : function() {
@@ -210,34 +171,36 @@ var gPlayer = {
 
 
 //----------------------------------------------------------------------------
-//  Game Entry / Loop
+//  Game State
 //----------------------------------------------------------------------------
-function startGame() {
-  gGameArea.start();
-  gLanes.start();
-  gPlayer.start();
+var gGameArea = null;
+function Game() {
+  let that  = this;
+  gGameArea = this;
+
+  this.start = function startGame() {
+    gLanes.start();
+    gPlayer.start();
+    this.testEnemy = new Enemy(0);
+
+    // Init input
+    // TODO remove this on exit.
+    window.addEventListener('keyup', function (e) {
+      console.log("key received");
+      that.key = e.key;
+    });
+  };
+
+  this.update = function update() {
+    gLanes.update();
+    gPlayer.update();
+    this.testEnemy.update();
+  };
+
+  this.draw = function drawGame() {
+    gLanes.draw();
+    gPlayer.draw();
+    this.testEnemy.draw();
+  };
 };
 
-function updateGame() {
-  gGameArea.update();
-  gLanes.update();
-  gPlayer.update();
-
-  if (gTestEnemy == null) {
-    gTestEnemy = new Enemy(0);
-  }
-  gTestEnemy.update();
-};
-
-function drawGame() {
-  gGameArea.clear();
-  gGameArea.draw();
-  gLanes.draw();
-  gPlayer.draw();
-  gTestEnemy.draw();
-};
-
-function gameLoop() {
-  updateGame();
-  drawGame();
-}

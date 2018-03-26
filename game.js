@@ -225,6 +225,10 @@ function Enemy(lane) {
     return false;
   };
 
+  this.getBoundingRect = function() {
+    return new Rect(this.position, this.size);
+  };
+
   this.update = function() {
     this.shouldBeRemoved();
     let p  = this.position;
@@ -368,6 +372,10 @@ var gPlayer = {
     return gLanes.laneToPosition(this.desiredLane);
   },
 
+  getBoundingRect : function() {
+    return new Rect(this.position, this.size);
+  },
+
   updatePosition : function() {
     let dest = this.getDestination();
     let velo = this.getVelocity(this.position, dest, data.player.movementSpeed);
@@ -406,6 +414,26 @@ var gPlayer = {
   }
 };
 
+/**
+ * Bounding box collision.
+ *
+ * `obstacles` must an array. The object `target` and those
+ * in `obstacles` must implement getBoundingRect().
+ */
+function CollisionDetector(target, obstacles) {
+  this.collides = function() {
+    var collision  = false;
+    let targetRect = target.getBoundingRect();
+    // For each obstacle.
+    for(var i=0; i < obstacles.length && !collision; i++) {
+      // Test for collision.
+      let obstacleRect = obstacles[i].getBoundingRect();
+      collision = targetRect.collides(obstacleRect);
+    }
+    return collision;
+  };
+};
+
 
 
 //----------------------------------------------------------------------------
@@ -415,6 +443,8 @@ var gGameArea = null;
 function Game() {
   let that  = this;
   gGameArea = this;
+
+  var collisionDetector = null;
 
   this.start = function startGame() {
     gLanes.start();
@@ -427,9 +457,15 @@ function Game() {
       console.log("key received");
       that.key = e.key;
     });
+
+    collisionDetector = new CollisionDetector(gPlayer, gEnemySpawner.enemies);
   };
 
   this.update = function update() {
+    if( collisionDetector.collides() ){
+      return; // "stop" game.
+    }
+
     gLanes.update();
     gPlayer.update();
     gEnemySpawner.update();

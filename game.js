@@ -34,6 +34,109 @@ function clone(obj) {
   return JSON.parse( JSON.stringify(obj) );
 }
 
+/**
+ * Size object constructor.
+ */
+function Size(width, height) {
+  this.width  = width;
+  this.height = height;
+}
+
+/**
+ * Point object constructor.
+ */
+function Point(x, y) {
+  this.x = x;
+  this.y = y;
+}
+
+/**
+ * Range object constructor.
+ */
+function Range(min, max) {
+  this.min = min;
+  this.max = max;
+
+  /**
+   * Return true if this range overlaps with another.
+   */
+  this.overlaps = function(rhsRange) {
+    return overlaps(this, rhsRange);
+  };
+}
+
+/**
+ * Rect object constructor.
+ */
+function Rect(topLeft, size) {
+  this.topLeft = clone( topLeft );
+  this.size    = clone( size );
+
+  this.xrange = function() {
+    let min = this.topLeft.x;
+    let max = min + this.size.x;
+    return new Range(min, max);
+  };
+
+  this.yrange = function() {
+    let min = this.topLeft.y;
+    let max = min + this.size.y;
+    return new Range(min, max);
+  };
+
+  this.xoverlaps = function(rhsRect) {
+    return xoverlaps(this, rhsRect);
+  };
+
+  this.yoverlaps = function(rhsRect) {
+    return yoverlaps(this, rhsRect);
+  };
+
+  this.collides = function(rhsRect) {
+    return collides(this, rhsRect);
+  };
+};
+
+/**
+ * Return true if two ranges overlap with another.
+ */
+function overlaps(lhsRange, rhsRange) {
+  // Calc min/max.
+  let min  = Math.min(lhsRange.min, rhsRange.min);
+  let max  = Math.max(lhsRange.max, rhsRange.max);
+
+  // Calc length.
+  let lhsLen    = lhsRange.max - lhsRange.min;
+  let rhsLen    = rhsRange.max - rhsRange.min;
+  let minmaxLen = max - min;
+  let fullLen   = lhsLen + rhsLen;
+  /*
+   min                           max
+    |--------  minmaxLen  --------|
+    |-- lhsLen --|   |-- rhsLen --|
+   */
+  return minmaxLen < fullLen;
+};
+
+function xoverlaps(lhrRect, rhsRect) {
+  let lx = lhrRect.xrange();
+  let rx = rhsRect.xrange();
+  return lx.overlaps(rx);
+};
+
+function yoverlaps(lhrRect, rhsRect) {
+  let ly = lhrRect.yrange();
+  let ry = rhsRect.yrange();
+  return ly.overlaps(ry);
+};
+
+function collides(lhrRect, rhsRect) {
+  let l = lhrRect;
+  let r = rhsRect;
+  return xoverlaps(l,r) && yoverlaps(l,r);
+};
+
+
 
 //----------------------------------------------------------------------------
 // Constants

@@ -3,11 +3,41 @@
 //----------------------------------------------------------------------------
 // Math Utils
 //----------------------------------------------------------------------------
+
+/**
+ * Bound a number `num` such that is between `min` (inclusive) and
+ * `max` (inclusive).
+ */
 function clamp(num, min, max) {
   return Math.min(Math.max(num, min), max);
 };
 
+/**
+ * Linear interpolation.
+ */
+function lerp(t, min, max) {
+  return min + ( max - min ) * t;
+}
 
+/**
+ * Random integer between `from` (inclusive) and `to` (inclusive).
+ */
+function randint(min, max) {
+  let r = Math.random();
+  return Math.floor( lerp(r, min, max) );
+}
+
+/**
+ * Clone an object.
+ */
+function clone(obj) {
+  return JSON.parse( JSON.stringify(obj) );
+}
+
+
+//----------------------------------------------------------------------------
+// Constants
+//----------------------------------------------------------------------------
 let data =
 // TODO this could be read from JSON file?
 {
@@ -21,6 +51,10 @@ let data =
     color:          "green",
     size:           { x:30, y:30 },
     movementSpeed:  0.1
+  },
+
+  enemySpawner: {
+    millisBetweenSpawn:  { min: 1000, max: 2000 }
   },
 
   input: {
@@ -53,6 +87,10 @@ var gLanes = {
 	   };
   },
 
+  getRandomLane : function() {
+    return randint( 0, this.maxLanes - 1 );
+  },
+
   start : function() {
   },
 
@@ -67,7 +105,7 @@ var gLanes = {
 };
 
 function Enemy(lane) {
-  this.size       = data.enemy.size;
+  this.size       = clone( data.enemy.size );
   this.position   = gLanes.laneToPosition(lane);
   this.position.x = gGameArea.canvas.width;
   this.velocity   = {x: -data.enemy.movementSpeed, y: 0};
@@ -102,8 +140,63 @@ function Enemy(lane) {
 		  this.size.x,
 		  this.size.y );
   };
-}
-var gTestEnemy = null; // TODO: remove me.
+};
+
+function EnemySpawner(data) {
+  let that = this;
+
+  this.data    = clone(data);
+  this.enemies = [];
+
+  var spawnCountdown = 0;
+  let updateSpawnCountdown = function() {
+    var countdownEnded = false;
+
+    // Update countdown
+    spawnCountdown -= gGameArea.dt;
+
+    // Test countdown
+    if (spawnCountdown <= 0) {
+      countdownEnded = true;
+
+      // New random count.
+      let ms = that.data.millisBetweenSpawn;
+      let moreTime = randint(ms.min, ms.max);
+      spawnCountdown += moreTime;
+    }
+
+    return countdownEnded;
+  };
+
+  let spawnEnemy = function() {
+    let lane  = gLanes.getRandomLane();
+    let enemy = new Enemy(lane);
+    that.enemies.push(enemy);
+  };
+
+  this.start = function() {
+  };
+
+  this.update = function() {
+    if(updateSpawnCountdown()) {
+      spawnEnemy();
+    }
+    this.updateEnemies();
+  };
+
+  this.updateEnemies = function() {
+    this.enemies.forEach(function(enemy, i) {
+      enemy.update();
+    });
+  };
+
+  this.draw = function() {
+    this.enemies.forEach(function(enemy, i) {
+      enemy.draw();
+    });
+  };
+};
+var gEnemySpawner = new EnemySpawner(data.enemySpawner);
 
 var gPlayer = {
 
@@ -216,7 +309,7 @@ function Game() {
   this.start = function startGame() {
     gLanes.start();
     gPlayer.start();
-    this.testEnemy = new Enemy(0);
+    gEnemySpawner.start();
 
     // Init input
     // TODO remove this on exit.
@@ -229,13 +322,13 @@ function Game() {
   this.update = function update() {
     gLanes.update();
     gPlayer.update();
-    this.testEnemy.update();
+    gEnemySpawner.update();
   };
 
   this.draw = function drawGame() {
     gLanes.draw();
     gPlayer.draw();
-    this.testEnemy.draw();
+    gEnemySpawner.draw();
   };
 };
 

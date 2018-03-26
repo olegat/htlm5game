@@ -178,16 +178,23 @@ function EnemySpawner(data) {
   };
 
   this.update = function() {
-    if(updateSpawnCountdown()) {
-      spawnEnemy();
+    // Remove dead enemies.
+    for(var i = this.enemies.length-1; i >= 0; i--) {
+      let e = this.enemies[i];
+      if(e.shouldBeRemoved()) {
+	this.enemies.splice(i, 1);
+      };
     }
-    this.updateEnemies();
-  };
 
-  this.updateEnemies = function() {
+    // Update live enemies.
     this.enemies.forEach(function(enemy, i) {
       enemy.update();
     });
+
+    // Spawn more enemies.
+    if(updateSpawnCountdown()) {
+      spawnEnemy();
+    }
   };
 
   this.draw = function() {

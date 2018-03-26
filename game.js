@@ -24,7 +24,7 @@ function lerp(t, min, max) {
  */
 function randint(min, max) {
   let r = Math.random();
-  return Math.floor( lerp(r, min, max) );
+  return Math.round( lerp(r, min, max) );
 }
 
 /**

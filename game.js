@@ -446,22 +446,27 @@ function Game() {
 
   var collisionDetector = null;
 
-  this.start = function startGame() {
+  let keyListener = function (e) {
+      console.log("key received");
+      that.key = e.key;
+  };
+
+  this.start = function() {
     gLanes.start();
     gPlayer.start();
     gEnemySpawner.start();
 
     // Init input
-    // TODO remove this on exit.
-    window.addEventListener('keyup', function (e) {
-      console.log("key received");
-      that.key = e.key;
-    });
+    window.addEventListener('keyup', keyListener);
 
     collisionDetector = new CollisionDetector(gPlayer, gEnemySpawner.enemies);
   };
 
-  this.update = function update() {
+  this.exit = function() {
+    window.removeEventListener('keyup', keyListener);
+  };
+
+  this.update = function() {
     if( collisionDetector.collides() ){
       return; // "stop" game.
     }
@@ -471,10 +476,17 @@ function Game() {
     gEnemySpawner.update();
   };
 
-  this.draw = function drawGame() {
+  this.draw = function() {
     gLanes.draw();
     gPlayer.draw();
     gEnemySpawner.draw();
+
+    if( collisionDetector.collides() ){
+      let ctx = gGameArea.context;
+      ctx.font  = "30px Arial";
+      ctx.fillStyle = "black";
+      ctx.fillText("Game Over", 160, 220);
+    }
   };
 };
 

@@ -207,6 +207,47 @@ var gLanes = {
   }
 };
 
+function SpriteAnimator(images) {
+
+  // Private members
+  var swapCountdown = 0;
+  var currentImage  = 0;
+
+  // Public members
+  this.images   = images;
+  this.interval = false;
+  this.context  = false;
+  this.position = false;
+
+  this.update = function() {
+    if(this.interval) {
+      let dt = gGameArea.dt;
+      swapCountdown -= dt;
+
+      // Swap the image
+      if(swapCountdown <=0 ) {
+	// Compute how many image-intervals occured
+	let cycles = 1 - Math.floor(swapCountdown / this.interval);
+
+	// Update count-down and image.
+	swapCountdown += this.interval * cycles;
+	currentImage  += cycles;
+	currentImage = currentImage % this.images.length;
+      }
+    }
+  };
+
+  this.draw = function() {
+    if (this.context && this.position) {
+      let id  = this.images[ currentImage ];
+      let img = document.getElementById( id );
+      this.context.drawImage( img,
+			      this.position.x,
+			      this.position.y );
+    }
+  };  
+};
+
 function Enemy(lane) {
   this.size       = clone( data.enemy.size );
   this.position   = gLanes.laneToPosition(lane);
@@ -314,6 +355,25 @@ var gEnemySpawner = new EnemySpawner(data.enemySpawner);
 
 var gPlayer = {
 
+  animator : new SpriteAnimator([
+    "horse-1",
+    "horse-2",
+    "horse-3",
+    "horse-4",
+    "horse-5",
+    "horse-6",
+    "horse-7",
+    "horse-8",
+    "horse-9",
+    "horse-10",
+    "horse-11",
+    "horse-12",
+    "horse-13",
+    "horse-14",
+    "horse-15",
+    "horse-16",
+  ]),
+
   readInput : function() {
     // Read and reset key.
     let v = false;
@@ -397,11 +457,16 @@ var gPlayer = {
     this.desiredLane = 1;
     this.size        = data.player.size;
     this.position    = this.getDestination();
+    this.animator.interval = 30;
   },
 
   update : function() {
     this.updateDesiredLane();
     this.updatePosition();
+
+    // Update animator
+    this.animator.position = this.position;
+    this.animator.update();
   },
 
   draw : function() {
@@ -411,6 +476,9 @@ var gPlayer = {
 		  this.position.y,
 		  this.size.x,
 		  this.size.y );
+
+    this.animator.context = gGameArea.context;
+    this.animator.draw();
   }
 };
 

@@ -254,6 +254,18 @@ function Enemy(lane) {
   this.position.x = gGameArea.canvas.width;
   this.velocity   = {x: -data.enemy.movementSpeed, y: 0};
 
+  var animator = new SpriteAnimator([
+    "bomb-1",
+    "bomb-2",
+    "bomb-3",
+    "bomb-4",
+    "bomb-5",
+    "bomb-6",
+    "bomb-7",
+    "bomb-8",
+  ]);
+  animator.interval = 100;
+
   this.shouldBeRemoved = function() {
     // Compute the right border of the enemy's bounding box.
     let rightBorder = this.position.x + this.size.x;
@@ -278,15 +290,23 @@ function Enemy(lane) {
     // Update position.
     this.position = { x: p.x + (v.x * dt) ,
 		      y: p.y + (v.y * dt) };
+
+    animator.position = this.position;
+    animator.update();
   };
 
   this.draw = function() {
     let ctx = gGameArea.context;
+    /* Debug: draw green rect around enemy.
     ctx.fillStyle = data.enemy.color;
     ctx.fillRect( this.position.x,
 		  this.position.y,
 		  this.size.x,
 		  this.size.y );
+    //*/
+
+    animator.context = ctx;
+    animator.draw();
   };
 };
 
